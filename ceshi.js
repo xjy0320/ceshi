@@ -6,6 +6,8 @@ cron 0 1 * * * jd_dpqd.js
 DPQDTK: token1&token2
 仓库不再提供token
 */
+[task_local]
+50 * * * * https://raw.githubusercontent.com/xjy0320/ceshi/main/ceshi.js, tag=店铺签到xjy, enabled=true
 let token = []
 if (process.env.DPQDTK) {
   if (process.env.DPQDTK.includes('\n')) {
