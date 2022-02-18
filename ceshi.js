@@ -1,5 +1,5 @@
 
-0 2 * * * ceshi.js
+0 3 * * * ceshi.js
 
 let token = []
 if (process.env.DPQDTK) {
