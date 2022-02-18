@@ -1,5 +1,5 @@
 /*
-0 4 * * * ceshi.js
+0 5 * * * ceshi.js
 */
 
 let token = []
