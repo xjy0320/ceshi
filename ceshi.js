@@ -1,11 +1,5 @@
 /*
-#店铺签到
 0 1 * * * ceshi.js
-店铺签到，各类店铺签到，有新的店铺直接添加token即可
-搬运cui521大佬脚本，请勿外传！！！
-环境变量:
-DPQDTK: token1&token2
-仓库不再提供token
 */
 
 let token = []
