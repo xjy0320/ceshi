@@ -52,7 +52,7 @@ if ($.isNode()) {
   }
   $.CryptoJS = $.isNode() ? require('crypto-js') : CryptoJS;
   await requestAlgo();
-  await $.wait(1000)
+
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       cookie = cookiesArr[i];
@@ -62,59 +62,16 @@ if ($.isNode()) {
       $.isLogin = true;
       UA = `jdpingou;iPhone;4.13.0;14.4.2;${randomString(40)};network/wifi;model/iPhone10,2;appBuild/100609;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/1;hasOCPay/0;supportBestPay/0;session/${Math.random * 98 + 1};pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
       UAInfo[$.UserName] = UA
-      await TotalBean();
+    
       console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
-      if (!$.isLogin) {
-        $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
 
-        if ($.isNode()) {
-          await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
-        }
-        continue
-      }
       $.allTask = []
       $.info = {}
       token = await getJxToken()
       await cfd();
-      await $.wait(2000);
     }
   }
-  let res = await getAuthorShareCode('https://raw.githubusercontent.com/Aaron-lv/updateTeam/master/shareCodes/cfd.json')
-  if (!res) {
-    $.http.get({url: 'https://purge.jsdelivr.net/gh/Aaron-lv/updateTeam@master/shareCodes/cfd.json'}).then((resp) => {}).catch((e) => console.log('刷新CDN异常', e));
-    await $.wait(1000)
-    res = await getAuthorShareCode('https://cdn.jsdelivr.net/gh/Aaron-lv/updateTeam@master/shareCodes/cfd.json')
-  }
-  let res2 = await getAuthorShareCode('https://raw.githubusercontent.com/zero205/updateTeam/main/shareCodes/cfd.json')
-  if (!res2) {
-    await $.wait(1000)
-    res2 = await getAuthorShareCode('https://raw.fastgit.org/zero205/updateTeam/main/shareCodes/cfd.json')
-  }
-  $.strMyShareIds = [...(res && res.shareId || []), ...(res2 || [])]
-  await shareCodesFormat()
-  for (let i = 0; i < cookiesArr.length; i++) {
-    cookie = cookiesArr[i];
-    $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
-    $.canHelp = true
-    UA = UAInfo[$.UserName]
-    if ($.newShareCodes && $.newShareCodes.length) {
-      console.log(`\n开始互助\n`);
-      for (let j = 0; j < $.newShareCodes.length && $.canHelp; j++) {
-        console.log(`账号${$.UserName} 去助力 ${$.newShareCodes[j]}`)
-        $.delcode = false
-        await helpByStage($.newShareCodes[j])
-        await $.wait(2000)
-        if ($.delcode) {
-          $.newShareCodes.splice(j, 1)
-          j--
-          continue
-        }
-      }
-    } else {
-      break
-    }
-  }
-  await showMsg();
+
 })()
     .catch((e) => $.logErr(e))
     .finally(() => $.done());
@@ -125,8 +82,6 @@ async function cfd() {
     let beginInfo = await getUserInfo();
     if (beginInfo.LeadInfo.dwLeadType === 2) {
       console.log(`还未开通活动，尝试初始化`)
-      await noviceTask()
-      await $.wait(2000)
       beginInfo = await getUserInfo(false);
       if (beginInfo.LeadInfo.dwLeadType !== 2) {
         console.log(`初始化成功\n`)
@@ -136,93 +91,11 @@ async function cfd() {
       }
     }
 
-    await $.wait(2000);
-    const endInfo = await getUserInfo(false);
-    $.result.push(
-        `【京东账号${$.index}】${$.nickName || $.UserName}`,
-        `【🥇金币】${endInfo.ddwCoinBalance}`,
-        `【💵财富值】${endInfo.ddwRichBalance}\n`,
-    );
-
   } catch (e) {
     $.logErr(e)
   }
 }
 
-
-
-// 助力
-function helpByStage(shareCodes) {
-  return new Promise((resolve) => {
-    $.get(taskUrl(`story/helpbystage`, `strShareId=${shareCodes}`), (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} helpbystage API请求失败，请检查网路重试`)
-        } else {
-          data = JSON.parse(data.replace(/\n/g, "").match(new RegExp(/jsonpCBK.?\((.*);*\)/))[1]);
-          if (data.iRet === 0 || data.sErrMsg === 'success') {
-            console.log(`助力成功：获得${data.Data.GuestPrizeInfo.strPrizeName}`)
-          } else if (data.iRet === 2235 || data.sErrMsg === '今日助力次数达到上限，明天再来帮忙吧~') {
-            console.log(`助力失败：${data.sErrMsg}`)
-            $.canHelp = false
-          } else if (data.iRet === 2232 || data.sErrMsg === '分享链接已过期') {
-            console.log(`助力失败：${data.sErrMsg}`)
-            $.delcode = true
-          } else if (data.iRet === 9999 || data.sErrMsg === '您还没有登录，请先登录哦~') {
-            console.log(`助力失败：${data.sErrMsg}`)
-            $.canHelp = false
-          } else if (data.iRet === 2229 || data.sErrMsg === '助力失败啦~') {
-            console.log(`助力失败：您的账号已黑`)
-            $.canHelp = false
-          } else if (data.iRet === 2190 || data.sErrMsg === '达到助力上限') {
-            console.log(`助力失败：${data.sErrMsg}`)
-            $.delcode = true
-          } else {
-            console.log(`助力失败：${data.sErrMsg}`)
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp);
-      } finally {
-        resolve(data);
-      }
-    })
-  })
-}
-
-function getAuthorShareCode(url) {
-  return new Promise(async resolve => {
-    const options = {
-      url: `${url}?${new Date()}`, "timeout": 10000, headers: {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/87.0.4280.88"
-      }
-    };
-    if ($.isNode() && process.env.TG_PROXY_HOST && process.env.TG_PROXY_PORT) {
-      const tunnel = require("tunnel");
-      const agent = {
-        https: tunnel.httpsOverHttp({
-          proxy: {
-            host: process.env.TG_PROXY_HOST,
-            port: process.env.TG_PROXY_PORT * 1
-          }
-        })
-      }
-      Object.assign(options, { agent })
-    }
-    $.get(options, async (err, resp, data) => {
-      try {
-        resolve(JSON.parse(data))
-      } catch (e) {
-        // $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
-    })
-    await $.wait(10000)
-    resolve();
-  })
-}
 
 // 获取用户信息
 function getUserInfo(showInvite = true) {
@@ -236,21 +109,10 @@ function getUserInfo(showInvite = true) {
           data = JSON.parse(data.replace(/\n/g, "").match(new RegExp(/jsonpCBK.?\((.*);*\)/))[1]);
           $.showPp = nc(oc(() => data.AreaAddr.dwIsSHowPp), 0)
           const {
-            buildInfo = {},
-            ddwRichBalance,
-            ddwCoinBalance,
-            sErrMsg,
             strMyShareId,
-            dwLandLvl,
-            LeadInfo = {},
-            StoryInfo = {},
-            Business = {},
-            XbStatus = {}
+            LeadInfo = {}
           } = data;
-          if (showInvite) {
-            console.log(`获取用户信息：${sErrMsg}\n${$.showLog ? data : ""}`);
-            console.log(`\n当前等级:${dwLandLvl},金币:${ddwCoinBalance},财富值:${ddwRichBalance},连续营业天数:${Business.dwBussDayNum},离线收益:${Business.ddwCoin}\n`)
-          }
+
           if (showInvite && strMyShareId) {
             console.log(`财富岛好友互助码每次运行都变化,旧的当天有效`);
             console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${strMyShareId}`);
@@ -259,23 +121,12 @@ function getUserInfo(showInvite = true) {
           }
           $.info = {
             ...$.info,
-            buildInfo,
-            ddwRichBalance,
-            ddwCoinBalance,
             strMyShareId,
-            dwLandLvl,
-            LeadInfo,
-            StoryInfo,
-            XbStatus
+            LeadInfo
           };
           resolve({
-            buildInfo,
-            ddwRichBalance,
-            ddwCoinBalance,
             strMyShareId,
-            LeadInfo,
-            StoryInfo,
-            XbStatus
+            LeadInfo
           });
         }
       } catch (e) {
@@ -287,75 +138,7 @@ function getUserInfo(showInvite = true) {
   })
 }
 
-// 新手任务
-async function noviceTask(){
-  let body = ``
-  await init(`user/guideuser`, body)
-  body = `strMark=guider_step&strValue=welcom&dwType=2`
-  await init(`user/SetMark`, body)
-  body = `strMark=guider_over_flag&strValue=999&dwType=2`
-  await init(`user/SetMark`, body)
-  body = `strMark=guider_step&strValue=999&dwType=2`
-  await init(`user/SetMark`, body)
-  body = `strMark=guider_step&strValue=999&dwType=2`
-  await init(`user/SetMark`, body)
-  body = `strMark=guider_over_flag&strValue=999&dwType=2`
-  await init(`user/SetMark`, body)
-  body = `strMark=guider_step&strValue=gift_redpack&dwType=2`
-  await init(`user/SetMark`, body)
-  body = `strMark=guider_step&strValue=none&dwType=2`
-  await init(`user/SetMark`, body)
-}
-async function init(function_path, body) {
-  return new Promise(async (resolve) => {
-    $.get(taskUrl(function_path, body), async (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} init API请求失败，请检查网路重试`)
-        } else {
-          if (function_path == "user/SetMark") opId = 23
-          if (function_path == "user/guideuser") opId = 27
-          data = JSON.parse(data.replace(/\n/g, "").match(new RegExp(/jsonpCBK.?\((.*);*\)/))[1]);
-          contents = `1771|${opId}|${data.iRet}|0|${data.sErrMsg || 0}`
-          await biz(contents)
-        }
-      } catch (e) {
-        $.logErr(e, resp);
-      } finally {
-        resolve();
-      }
-    })
-  })
-}
-function biz(contents){
-  return new Promise(async (resolve) => {
-    let option = {
-      url:`https://m.jingxi.com/webmonitor/collect/biz.json?contents=${contents}&t=${Math.random()}&sceneval=2`,
-      headers: {
-        Cookie: cookie,
-        Accept: "*/*",
-        Connection: "keep-alive",
-        Referer: "https://st.jingxi.com/fortune_island/index.html?ptag=138631.26.55",
-        "Accept-Encoding": "gzip, deflate, br",
-        Host: 'm.jingxi.com',
-        "User-Agent": UA,
-        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-      }
-    }
-    $.get(option, async (err, resp, _data) => {
-      try {
-        // console.log(_data)
-      }
-      catch (e) {
-        $.logErr(e, resp);
-      }
-      finally {
-        resolve();
-      }
-    })
-  })
-}
+
 
 function taskUrl(function_path, body = '', dwEnv = 7) {
   let url = `${JD_API_HOST}jxbfd/${function_path}?strZone=jxbfd&bizCode=jxbfd&source=jxbfd&dwEnv=${dwEnv}&_cfd_t=${Date.now()}&ptag=7155.9.47${body ? `&${body}` : ''}`;
@@ -375,23 +158,6 @@ function taskUrl(function_path, body = '', dwEnv = 7) {
   }
 }
 
-function taskListUrl(function_path, body = '', bizCode = 'jxbfd') {
-  let url = `${JD_API_HOST}newtasksys/newtasksys_front/${function_path}?strZone=jxbfd&bizCode=${bizCode}&source=jxbfd&dwEnv=7&_cfd_t=${Date.now()}&ptag=7155.9.47${body ? `&${body}` : ''}`;
-  url += `&_stk=${getStk(url)}`;
-  url += `&_ste=1&h5st=${decrypt(Date.now(), '', '', url)}&_=${Date.now() + 2}&sceneval=2&g_login_type=1&callback=jsonpCBK${String.fromCharCode(Math.floor(Math.random() * 26) + "A".charCodeAt(0))}&g_ty=ls`;
-  return {
-    url,
-    headers: {
-      "Host": "m.jingxi.com",
-      "Accept": "*/*",
-      "Accept-Encoding": "gzip, deflate, br",
-      "User-Agent": UA,
-      "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-      "Referer": "https://st.jingxi.com/",
-      "Cookie": cookie
-    }
-  }
-}
 function getStk(url) {
   let arr = url.split('&').map(x => x.replace(/.*\?/, "").replace(/=.*/, ""))
   return encodeURIComponent(arr.filter(x => x).sort().join(','))
@@ -404,51 +170,7 @@ function randomString(e) {
   return n
 }
 
-function showMsg() {
-  return new Promise(async (resolve) => {
-    if ($.result.length) {
-      if ($.notifyTime) {
-        const notifyTimes = $.notifyTime.split(",").map((x) => x.split(":"));
-        const now = $.time("HH:mm").split(":");
-        console.log(`\n${JSON.stringify(notifyTimes)}`);
-        console.log(`\n${JSON.stringify(now)}`);
-        if ( notifyTimes.some((x) => x[0] === now[0] && (!x[1] || x[1] === now[1])) ) {
-          $.msg($.name, "", `${$.result.join("\n")}`);
-        }
-      } else {
-        $.msg($.name, "", `${$.result.join("\n")}`);
-      }
 
-      if ($.isNode() && process.env.CFD_NOTIFY_CONTROL)
-        await notify.sendNotify(`${$.name} - 账号${$.index} - ${$.nickName}`, `${$.result.join("\n")}`);
-    }
-    resolve();
-  });
-}
-
-function readShareCode() {
-  return new Promise(async resolve => {
-    $.get({url: `https://transfer.nz.lu/cfd`, timeout: 30 * 1000}, (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(JSON.stringify(err))
-          console.log(`${$.name} readShareCode API请求失败，请检查网路重试`)
-        } else {
-          if (data) {
-            console.log(`\n随机取${randomCount}个码放到您固定的互助码后面(不影响已有固定互助)`)
-            data = JSON.parse(data);
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve(data);
-      }
-    })
-    await $.wait(30 * 1000);
-    resolve()
-  })
-}
 function uploadShareCode(code) {
   return new Promise(async resolve => {
     $.post({url: `https://transfer.nz.lu/upload/cfd?code=${code}&ptpin=${encodeURIComponent(encodeURIComponent($.UserName))}`, timeout: 30 * 1000}, (err, resp, data) => {
@@ -479,64 +201,11 @@ function uploadShareCode(code) {
         resolve(data);
       }
     })
-    await $.wait(30 * 1000);
     resolve()
   })
 }
-//格式化助力码
-function shareCodesFormat() {
-  return new Promise(async resolve => {
-    $.newShareCodes = []
-    const readShareCodeRes = await readShareCode();
-    if (readShareCodeRes && readShareCodeRes.code === 200) {
-      $.newShareCodes = [...new Set([...$.shareCodes, ...$.strMyShareIds, ...(readShareCodeRes.data || [])])];
-    } else {
-      $.newShareCodes = [...new Set([...$.shareCodes, ...$.strMyShareIds])];
-    }
-    console.log(`您将要助力的好友${JSON.stringify($.newShareCodes)}`)
-    resolve();
-  })
-}
 
-function TotalBean() {
-  return new Promise(resolve => {
-    const options = {
-      url: "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion",
-      headers: {
-        "Host": "me-api.jd.com",
-        "Accept": "*/*",
-        "User-Agent": "ScriptableWidgetExtension/185 CFNetwork/1312 Darwin/21.0.0",
-        "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Cookie": cookie
-      }
-    }
-    $.get(options, (err, resp, data) => {
-      try {
-        if (err) {
-          $.logErr(err)
-        } else {
-          if (data) {
-            data = JSON.parse(data);
-            if (data['retcode'] === "1001") {
-              $.isLogin = false; //cookie过期
-              return;
-            }
-            if (data['retcode'] === "0" && data.data && data.data.hasOwnProperty("userInfo")) {
-              $.nickName = data.data.userInfo.baseInfo.nickname;
-            }
-          } else {
-            console.log('京东服务器返回空数据');
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve()
-      }
-    })
-  })
-}
+
 function jsonParse(str) {
   if (typeof str == "string") {
     try {
