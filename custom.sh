@@ -307,11 +307,11 @@ add_curl_sample() {
         echo "开始添加 task:curl config.sample.sh"
         # 获取token
         token=$(cat /ql/data/config/auth.json | jq --raw-output .token)
-        curl -s -H 'Accept: application/json' -H "Authorization: Bearer $token" -H 'Content-Type: application/json;charset=UTF-8' -H 'Accept-Language: zh-CN,zh;q=0.9' --data-binary '{"name":"自动更新模板","command":"curl -L https://raw.githubusercontents.com/shufflewzc/VIP/main/Conf/Qinglong/config.sample.sh -o /ql/data/sample/config.sample.sh && cp -rf /ql/data/sample/config.sample.sh /ql/data/config","schedule":"45 6,18 * * *"}' --compressed 'http://127.0.0.1:5700/api/crons?t=1627380635389'
+        curl -s -H 'Accept: application/json' -H "Authorization: Bearer $token" -H 'Content-Type: application/json;charset=UTF-8' -H 'Accept-Language: zh-CN,zh;q=0.9' --data-binary '{"name":"自动更新模板","command":"curl -L https://raw.githubusercontents.com/shufflewzc/VIP/main/Conf/Qinglong/config.sample.sh -o /ql/sample/config.sample.sh && cp -rf /ql/sample/config.sample.sh /ql/data/config","schedule":"45 6,18 * * *"}' --compressed 'http://127.0.0.1:5700/api/crons?t=1627380635389'
     fi
 }
 run_curl_sample() {
-    curl -sL $valid_url -o /ql/data/sample/config.sample.sh && cp -rf /ql/data/sample/config.sample.sh /ql/data/config
+    curl -sL $valid_url -o /ql/sample/config.sample.sh && cp -rf /ql/sample/config.sample.sh /ql/data/config
 }
 if [ "${all}" = 1 ]; then
     get_valid_config && add_curl_sample && run_curl_sample
