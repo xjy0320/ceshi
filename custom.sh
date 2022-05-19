@@ -313,7 +313,7 @@ add_curl_sample() {
 
 
 run_curl_sample() {
-    curl -sL $valid_url -o /ql/sample/config.sample.sh && cp -rf /ql/sample/config.sample.sh /ql/data/config
+    curl -sL $valid_url -o /ql/sample/config.sample.sh && cp -rf /ql/sample/config.sample.sh /ql/data/config/config.sample.sh
 }
 if [ "${all}" = 1 ]; then
     get_valid_config && add_curl_sample && run_curl_sample
