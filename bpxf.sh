@@ -264,7 +264,7 @@ esac
 ;;
 
 *)
-echo "请输入正确"
+echo "请输入正确 "
 ;;
 esac
 get_step
