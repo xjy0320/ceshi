@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+## 由faker的脚本修改by Simple
 ## 本脚本搬运并模仿 liuqitoday
 dir_config=/ql/data/config
 dir_script=/ql/data/scripts
